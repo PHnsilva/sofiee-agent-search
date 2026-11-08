@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contractVersion": "1.0.0",
+  "purpose": "MCP contract for general search with user filters and requested ordering preserved.",
+  "errorSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://sofiee-agent-search.local/contracts/v1/error.schema.json",
+    "type": "object", "additionalProperties": false,
+    "required": ["contractVersion", "code", "message", "retryable"],
+    "properties": {
+      "contractVersion": { "const": "1.0.0" },
+      "code": { "enum": ["invalid_request", "filter_unrepresentable", "source_unavailable", "access_not_authorized", "limit_exceeded", "unavailable", "internal_error"] },
+      "message": { "type": "string", "minLength": 1, "maxLength": 500 },
+      "retryable": { "type": "boolean" }
+    }
+  },
+  "tools": [
+    {
+      "name": "search.query",
+      "sideEffects": false,
+      "description": "Search relevant sources without a global domain allowlist, retaining every required filter and requested ordering.",
+      "errorCodes": ["invalid_request", "filter_unrepresentable", "source_unavailable", "access_not_authorized", "limit_exceeded", "unavailable", "internal_error"],
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://sofiee-agent-search.local/contracts/v1/query.input.schema.json",
+        "type": "object", "additionalProperties": false,
+        "required": ["contractVersion", "request", "query", "filters", "sourceHints", "sort", "pageLimit", "cursor"],
+        "properties": {
+          "contractVersion": { "const": "1.0.0" },
+          "request": { "type": "string", "minLength": 1, "maxLength": 6000 },
+          "query": { "type": "string", "minLength": 1, "maxLength": 2000 },
+          "filters": { "type": "array", "maxItems": 50, "items": { "type": "object", "additionalProperties": false, "required": ["id", "criterion", "required"], "properties": { "id": { "type": "string", "minLength": 1, "maxLength": 100 }, "criterion": { "type": "string", "minLength": 1, "maxLength": 500 }, "required": { "type": "boolean" } } } },
+          "sourceHints": { "type": "array", "maxItems": 30, "items": { "type": "string", "minLength": 1, "maxLength": 500 } },
+          "sort": { "type": "array", "maxItems": 10, "items": { "type": "object", "additionalProperties": false, "required": ["field", "direction"], "properties": { "field": { "type": "string", "minLength": 1, "maxLength": 100 }, "direction": { "enum": ["ascending", "descending"] } } } },
+          "pageLimit": { "type": "integer", "minimum": 1, "maximum": 100 },
+          "cursor": { "type": "string", "maxLength": 512 }
+        }
+      },
+      "resultSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://sofiee-agent-search.local/contracts/v1/query.result.schema.json",
+        "type": "object", "additionalProperties": false,
+        "required": ["contractVersion", "status", "results", "filterAudit", "sortAudit", "pagination"],
+        "properties": {
+          "contractVersion": { "const": "1.0.0" },
+          "status": { "enum": ["complete", "partial", "no_results", "needs_clarification"] },
+          "results": { "type": "array", "maxItems": 100, "items": { "type": "object", "additionalProperties": false, "required": ["title", "sourceName", "reference", "retrievedAt", "matchStatus", "matchedRequiredFilterIds", "unverifiableRequiredFilterIds", "filterResults", "attributes"], "properties": { "title": { "type": "string", "minLength": 1, "maxLength": 500 }, "sourceName": { "type": "string", "minLength": 1, "maxLength": 200 }, "reference": { "type": "string", "minLength": 1, "maxLength": 2000 }, "retrievedAt": { "type": "string", "minLength": 1, "maxLength": 64 }, "matchStatus": { "enum": ["meets_required_filters", "unverified_required_filters"] }, "matchedRequiredFilterIds": { "type": "array", "maxItems": 50, "items": { "type": "string", "minLength": 1, "maxLength": 100 } }, "unverifiableRequiredFilterIds": { "type": "array", "maxItems": 50, "items": { "type": "string", "minLength": 1, "maxLength": 100 } }, "filterResults": { "type": "array", "maxItems": 50, "items": { "type": "object", "additionalProperties": false, "required": ["filterId", "status", "evidence"], "properties": { "filterId": { "type": "string", "minLength": 1, "maxLength": 100 }, "status": { "enum": ["pass", "fail", "unverifiable"] }, "evidence": { "type": "string", "maxLength": 800 } } } }, "attributes": { "type": "array", "maxItems": 100, "items": { "type": "object", "additionalProperties": false, "required": ["name", "value"], "properties": { "name": { "type": "string", "minLength": 1, "maxLength": 100 }, "value": { "type": "string", "maxLength": 1000 } } } } } } },
+          "filterAudit": { "type": "array", "maxItems": 50, "items": { "type": "object", "additionalProperties": false, "required": ["filterId", "status", "note"], "properties": { "filterId": { "type": "string", "minLength": 1, "maxLength": 100 }, "status": { "enum": ["pass", "fail", "unverifiable"] }, "note": { "type": "string", "maxLength": 800 } } } },
+          "sortAudit": { "type": "object", "additionalProperties": false, "required": ["status", "field", "basis", "reason"], "properties": { "status": { "enum": ["applied", "partial", "not_comparable", "not_requested"] }, "field": { "type": "string", "maxLength": 100 }, "basis": { "type": "string", "maxLength": 300 }, "reason": { "type": "string", "maxLength": 800 } } },
+          "pagination": { "type": "object", "additionalProperties": false, "required": ["hasMore", "nextCursor", "coverage"], "properties": { "hasMore": { "type": "boolean" }, "nextCursor": { "type": "string", "maxLength": 512 }, "coverage": { "enum": ["full", "partial", "unknown"] } } }
+        }
+      },
+      "examples": {
+        "validInput": { "contractVersion": "1.0.0", "request": "Camisa branca tamanho M mais barata com frete incluso", "query": "camisa", "filters": [{ "id": "category", "criterion": "camisa", "required": true }, { "id": "color", "criterion": "branca", "required": true }, { "id": "size", "criterion": "M", "required": true }, { "id": "shipping", "criterion": "frete incluso", "required": true }], "sourceHints": [], "sort": [{ "field": "preço total com frete", "direction": "ascending" }], "pageLimit": 20, "cursor": "" },
+        "invalidInput": { "contractVersion": "1.0.0", "request": "Camisa branca", "query": "camisa", "filters": [], "sourceHints": [], "sort": [], "pageLimit": 0, "cursor": "", "relaxFilters": true },
+        "validResult": { "contractVersion": "1.0.0", "status": "partial", "results": [{ "title": "Camisa branca unissex", "sourceName": "Loja de exemplo", "reference": "fixture://offer/item-1", "retrievedAt": "2026-11-08T12:00:00-03:00", "matchStatus": "unverified_required_filters", "matchedRequiredFilterIds": ["category", "color", "size"], "unverifiableRequiredFilterIds": ["shipping"], "filterResults": [{ "filterId": "category", "status": "pass", "evidence": "Fixture sintética." }, { "filterId": "color", "status": "pass", "evidence": "Fixture sintética." }, { "filterId": "size", "status": "pass", "evidence": "Fixture sintética." }, { "filterId": "shipping", "status": "unverifiable", "evidence": "Frete não informado." }], "attributes": [{ "name": "preço do item", "value": "100 BRL" }, { "name": "frete", "value": "não informado" }] }], "filterAudit": [{ "filterId": "category", "status": "pass", "note": "Filtro representado sem relaxamento." }, { "filterId": "color", "status": "pass", "note": "Filtro representado sem relaxamento." }, { "filterId": "size", "status": "pass", "note": "Filtro representado sem relaxamento." }, { "filterId": "shipping", "status": "unverifiable", "note": "O valor obrigatório será informado como não verificável." }], "sortAudit": { "status": "not_comparable", "field": "preço total com frete", "basis": "", "reason": "Frete não está disponível; ordenação solicitada não foi simulada." }, "pagination": { "hasMore": false, "nextCursor": "", "coverage": "unknown" } },
+        "error": { "contractVersion": "1.0.0", "code": "filter_unrepresentable", "message": "Um filtro obrigatório não pode ser aplicado nem verificado; ele não foi descartado.", "retryable": false }
+      }
+    }
+  ]
+}
