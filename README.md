@@ -19,6 +19,7 @@ Busca encontra fontes em qualquer lugar pertinente e preserva filtros do usuári
 Trabalho exclusivamente no C:, sem serviços pagos obrigatórios. SlothGeo é separado e adiado para 21/11, não um sexto agente desta rotina.
 
 O contrato tipado de busca v1, com exemplos sintéticos e limites de validação, está em [contracts/v1](contracts/v1/README.md). Ele define a fronteira prevista; não indica runtime ou busca integrada.
+- Casos públicos e protocolo de avaliação da issue #6: [evals](evals/README.md); são fixtures, não resultados de um agente.
 <!-- END CURRENT PLAN 2026-11-06 -->
 
 <details>

@@ -1,0 +1,43 @@
+{
+  "version": "1.0.0",
+  "project": "sofiee-agent-search",
+  "datasets": {
+    "development": {
+      "version": "1.0.0",
+      "path": "evals/development/cases.json",
+      "public": true,
+      "caseIds": [
+        "SEARCH-DEV-001",
+        "SEARCH-DEV-002"
+      ]
+    },
+    "regression": {
+      "version": "1.0.0",
+      "path": "evals/regression/cases.json",
+      "public": true,
+      "caseIds": [
+        "SEARCH-REG-001",
+        "SEARCH-REG-002"
+      ]
+    }
+  },
+  "reserve": {
+    "policyVersion": "1.0.0",
+    "status": "defined_not_populated",
+    "custodian": "Pedro",
+    "location": "owner-controlled storage outside this public repository",
+    "publiclyIncluded": false,
+    "agentAccessible": false,
+    "caseIds": []
+  },
+  "requiredContractTools": [
+    "search.query"
+  ],
+  "evaluation": {
+    "scoreUnit": "per-case/per-capability",
+    "humanReviewRequired": true,
+    "criticalFailureInvalidatesCase": true,
+    "aggregateQualityClaimsAllowed": false,
+    "modelOutputsIncluded": false
+  }
+}
