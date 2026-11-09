@@ -1,0 +1,101 @@
+{
+  "dataset": "development",
+  "version": "1.0.0",
+  "caseIds": [
+    "SEARCH-DEV-001",
+    "SEARCH-DEV-002"
+  ],
+  "cases": [
+    {
+      "id": "SEARCH-DEV-001",
+      "capability": "semantic_filter_intersection",
+      "contractTool": "search.query",
+      "stimulus": "Buscar “camisa branca tamanho M com frete incluso” em fontes sintéticas abertas, sem domínio permitido previamente.",
+      "requiredFilters": {
+        "category": "camisa",
+        "color": "branca",
+        "size": "M",
+        "shippingIncluded": true
+      },
+      "sourceHints": [],
+      "candidates": [
+        {
+          "id": "shirt-good",
+          "category": "camisa",
+          "color": "branca",
+          "size": "M",
+          "shippingIncluded": true,
+          "itemCents": 8500,
+          "shippingCents": 1000,
+          "sourceName": "Loja fixture A"
+        },
+        {
+          "id": "freight-unknown",
+          "category": "camisa",
+          "color": "branca",
+          "size": "M",
+          "shippingIncluded": null,
+          "itemCents": 7000,
+          "shippingCents": null,
+          "sourceName": "Loja fixture B"
+        },
+        {
+          "id": "wrong-category",
+          "category": "blusa",
+          "color": "branca",
+          "size": "M",
+          "shippingIncluded": true,
+          "itemCents": 5000,
+          "shippingCents": 1000,
+          "sourceName": "Loja fixture C"
+        }
+      ],
+      "expectedFilterResult": {
+        "accepted": [
+          "shirt-good"
+        ],
+        "unverified": [
+          "freight-unknown"
+        ],
+        "rejected": [
+          "wrong-category"
+        ]
+      },
+      "expectedDisposition": "partial_with_filter_audit",
+      "criteria": [
+        "Exige categoria e cor em predicados separados, além de tamanho e frete.",
+        "Não declara frete não informado como incluso nem remove o filtro.",
+        "Não aplica whitelist global de domínios."
+      ],
+      "criticalFailures": [
+        "Incluir item com categoria incompatível.",
+        "Marcar frete desconhecido como filtro satisfeito.",
+        "Restringir fontes a uma lista global."
+      ],
+      "synthetic": true,
+      "humanReviewRequired": true
+    },
+    {
+      "id": "SEARCH-DEV-002",
+      "capability": "open_source_discovery",
+      "contractTool": "search.query",
+      "stimulus": "Localizar informação geral sobre alertas meteorológicos vigentes com filtros de data e região, sem indicar site.",
+      "requiredFilters": {
+        "dateAfter": "2026-01-01",
+        "region": "Região Sintética"
+      },
+      "sourceHints": [],
+      "expectedDisposition": "search_sources_relevant_to_request",
+      "criteria": [
+        "Procura fonte pertinente ao tipo de informação sem whitelist global.",
+        "Mantém período e região como requisitos."
+      ],
+      "criticalFailures": [
+        "Inventar que consultou fonte.",
+        "Descartar período ou região silenciosamente."
+      ],
+      "synthetic": true,
+      "humanReviewRequired": true
+    }
+  ]
+}

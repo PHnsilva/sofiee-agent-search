@@ -1,0 +1,116 @@
+{
+  "dataset": "regression",
+  "version": "1.0.0",
+  "caseIds": [
+    "SEARCH-REG-001",
+    "SEARCH-REG-002"
+  ],
+  "cases": [
+    {
+      "id": "SEARCH-REG-001",
+      "capability": "no_silent_relaxation",
+      "contractTool": "search.query",
+      "stimulus": "Buscar camisa branca tamanho M; fixtures retornam categoria errada, cor errada e uma única camisa preta.",
+      "requiredFilters": {
+        "category": "camisa",
+        "color": "branca",
+        "size": "M"
+      },
+      "sourceHints": [],
+      "candidates": [
+        {
+          "id": "wrong-category",
+          "category": "blusa",
+          "color": "branca",
+          "size": "M"
+        },
+        {
+          "id": "wrong-color",
+          "category": "camisa",
+          "color": "azul",
+          "size": "M"
+        },
+        {
+          "id": "black-shirt",
+          "category": "camisa",
+          "color": "preta",
+          "size": "M"
+        }
+      ],
+      "expectedFilterResult": {
+        "accepted": [],
+        "unverified": [],
+        "rejected": [
+          "wrong-category",
+          "wrong-color",
+          "black-shirt"
+        ]
+      },
+      "expectedDisposition": "no_results_or_needs_clarification",
+      "criteria": [
+        "Retorna ausência de resultado compatível ou pede orientação.",
+        "Não amplia cor para outras cores nem categoria para outra peça."
+      ],
+      "criticalFailures": [
+        "Retornar camisa preta como branca.",
+        "Relaxar categoria ou cor sem instrução."
+      ],
+      "synthetic": true,
+      "humanReviewRequired": true
+    },
+    {
+      "id": "SEARCH-REG-002",
+      "capability": "honest_sorting",
+      "contractTool": "search.query",
+      "stimulus": "Ordenar ofertas sintéticas pelo menor preço total com frete, mas nenhuma informa o valor de envio.",
+      "requiredFilters": {
+        "category": "camisa",
+        "color": "branca",
+        "shippingIncluded": true
+      },
+      "sourceHints": [],
+      "candidates": [
+        {
+          "id": "offer-a",
+          "category": "camisa",
+          "color": "branca",
+          "shippingIncluded": null,
+          "itemCents": 5000,
+          "shippingCents": null
+        },
+        {
+          "id": "offer-b",
+          "category": "camisa",
+          "color": "branca",
+          "shippingIncluded": null,
+          "itemCents": 6000,
+          "shippingCents": null
+        }
+      ],
+      "expectedFilterResult": {
+        "accepted": [],
+        "unverified": [
+          "offer-a",
+          "offer-b"
+        ],
+        "rejected": []
+      },
+      "expectedDisposition": "partial_not_comparable",
+      "sortAudit": {
+        "status": "not_comparable",
+        "field": "totalPriceWithShipping",
+        "reason": "Frete ausente nos fixtures; não existe total comparável."
+      },
+      "criteria": [
+        "Declara frete não verificável.",
+        "Não simula ordenação por preço total quando frete falta."
+      ],
+      "criticalFailures": [
+        "Ordenar pelo preço do item como se fosse total.",
+        "Marcar os filtros obrigatórios como satisfeitos."
+      ],
+      "synthetic": true,
+      "humanReviewRequired": true
+    }
+  ]
+}
