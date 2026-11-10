@@ -17,8 +17,8 @@ Busca geral com compreensão semântica, filtros obrigatórios e ordenação con
 Busca encontra fontes em qualquer lugar pertinente e preserva filtros do usuário; Validação escolhe a base adequada ao tipo de dado e verifica as referências independentemente. Não aplicar uma whitelist científica global ao Busca. O modelo pode ser compartilhado; as ferramentas e critérios de domínio são específicos.
 
 Trabalho exclusivamente no C:, sem serviços pagos obrigatórios. SlothGeo é separado e adiado para 21/11, não um sexto agente desta rotina.
-
 O contrato tipado de busca v1, com exemplos sintéticos e limites de validação, está em [contracts/v1](contracts/v1/README.md). Ele define a fronteira prevista; não indica runtime ou busca integrada.
+- Ambiente e versões locais: [inventário reproduzível](docs/LOCAL_ENVIRONMENT.md).
 <!-- END CURRENT PLAN 2026-11-06 -->
 
 <details>
@@ -47,3 +47,16 @@ Este é um dos quatro agentes gerais: [comunicação](https://github.com/PHnsilv
 O repositório é público para consulta e sugestões por issue ou PR. Mudanças posteriores ao bootstrap usam issue, branch e PR com evidências. Revisão e aceite são de Pedro.
 
 </details>
+
+## Núcleo local proposto na issue #7
+
+O runtime recebe uma consulta estruturada, preserva todos os filtros e a ordenação e entrega um plano imutável ao provedor configurado. Sem provedor, retorna `source_unavailable`; não sintetiza resultados nem remove critérios. Um provedor injetado passa por validação do contrato e coerência dos filtros obrigatórios. O limite de entrada do CLI é 80.000 bytes; detalhes e limites atuais estão em [evidência do runtime](docs/RUNTIME_EVIDENCE.md).
+
+O adaptador Ollama local é opcional e não foi usado para uma consulta já estruturada. Não há adaptador de fonte real nesta issue; o servidor MCP interno fica na issue #8.
+
+Comandos locais:
+
+    C:\SDKs\Python313\python.exe -m unittest discover -s tests -v
+    C:\SDKs\Python313\python.exe scripts\validate_contracts.py
+    C:\SDKs\Python313\python.exe scripts\check_environment.py
+    C:\SDKs\Python313\python.exe scripts\measure_runtime.py
