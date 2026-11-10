@@ -47,3 +47,16 @@ Este é um dos quatro agentes gerais: [comunicação](https://github.com/PHnsilv
 O repositório é público para consulta e sugestões por issue ou PR. Mudanças posteriores ao bootstrap usam issue, branch e PR com evidências. Revisão e aceite são de Pedro.
 
 </details>
+
+## Núcleo local proposto na issue #7
+
+O runtime recebe uma consulta estruturada, preserva todos os filtros e a ordenação e entrega um plano imutável ao provedor configurado. Sem provedor, retorna `source_unavailable`; não sintetiza resultados nem remove critérios. Um provedor injetado passa por validação do contrato e coerência dos filtros obrigatórios. O limite de entrada do CLI é 80.000 bytes; detalhes e limites atuais estão em [evidência do runtime](docs/RUNTIME_EVIDENCE.md).
+
+O adaptador Ollama local é opcional e não foi usado para uma consulta já estruturada. Não há adaptador de fonte real nesta issue; o servidor MCP interno fica na issue #8.
+
+Comandos locais:
+
+    C:\SDKs\Python313\python.exe -m unittest discover -s tests -v
+    C:\SDKs\Python313\python.exe scripts\validate_contracts.py
+    C:\SDKs\Python313\python.exe scripts\check_environment.py
+    C:\SDKs\Python313\python.exe scripts\measure_runtime.py
