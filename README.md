@@ -17,6 +17,8 @@ Busca geral com compreensão semântica, filtros obrigatórios e ordenação con
 Busca encontra fontes em qualquer lugar pertinente e preserva filtros do usuário; Validação escolhe a base adequada ao tipo de dado e verifica as referências independentemente. Não aplicar uma whitelist científica global ao Busca. O modelo pode ser compartilhado; as ferramentas e critérios de domínio são específicos.
 
 Trabalho exclusivamente no C:, sem serviços pagos obrigatórios. SlothGeo é separado e adiado para 21/11, não um sexto agente desta rotina.
+
+O contrato tipado de busca v1, com exemplos sintéticos e limites de validação, está em [contracts/v1](contracts/v1/README.md). Ele define a fronteira prevista; não indica runtime ou busca integrada.
 <!-- END CURRENT PLAN 2026-11-06 -->
 
 <details>
