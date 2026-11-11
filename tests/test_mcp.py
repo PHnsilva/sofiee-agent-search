@@ -17,6 +17,7 @@ SERVER = StdioServerParameters(
     cwd=ROOT,
 )
 EXPECTED_NAMES = {'search.query'}
+TEST_TOOL = "search.query"
 PAYLOAD = {'contractVersion': '1.0.0',
  'request': 'find a white shirt size M',
  'query': 'white shirt',
@@ -34,7 +35,7 @@ async def discover_and_call():
         listing = await client.list_tools()
         names = {item.name for item in listing.tools}
         tools = {item.name: item for item in listing.tools}
-        result = await client.call_tool("search.query", PAYLOAD)
+        result = await client.call_tool(TEST_TOOL, PAYLOAD)
         return names, tools, result
 
 
@@ -42,7 +43,10 @@ class McpTransportTests(unittest.TestCase):
     def test_real_client_discovers_contract_tools_and_calls_domain_operation(self):
         names, tools, result = asyncio.run(discover_and_call())
         self.assertSetEqual(names, EXPECTED_NAMES)
-        self.assertEqual(tools["search.query"].input_schema["$id"], "https://sofiee-agent-search.local/contracts/v1/query.input.schema.json")
+        self.assertEqual(
+            tools[TEST_TOOL].input_schema["$id"],
+            'https://sofiee-agent-search.local/contracts/v1/query.input.schema.json',
+        )
         self.assertIsInstance(result.structured_content, dict)
         self.assertEqual(result.structured_content.get("contractVersion"), "1.0.0")
         self.assertTrue(result.is_error)
