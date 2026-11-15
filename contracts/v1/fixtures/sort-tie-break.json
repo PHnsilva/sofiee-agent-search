@@ -1,0 +1,24 @@
+{
+  "sort": [
+    { "field": "price", "direction": "ascending" },
+    { "field": "rating", "direction": "descending" }
+  ],
+  "items": [
+    { "id": "lower-price-high-rating", "attributes": { "price": "100", "rating": "4.9" } },
+    { "id": "lower-price-low-rating", "attributes": { "price": "100", "rating": "4.1" } },
+    { "id": "higher-price-top-rating", "attributes": { "price": "120", "rating": "5.0" } }
+  ],
+  "sortAudit": {
+    "status": "applied",
+    "requested": [
+      { "field": "price", "direction": "ascending" },
+      { "field": "rating", "direction": "descending" }
+    ],
+    "applied": [
+      { "field": "price", "direction": "ascending" },
+      { "field": "rating", "direction": "descending" }
+    ],
+    "basis": "Price ascending; rating descending breaks ties at the same price.",
+    "reason": ""
+  }
+}

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import os
+import re
 import threading
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from typing import Any, Protocol
 
 from .contracts import CONTRACT, ERROR_SCHEMA, ContractViolation, error_result, validate, validate_input, validate_result
@@ -12,6 +14,7 @@ from .contracts import CONTRACT, ERROR_SCHEMA, ContractViolation, error_result, 
 
 VERSION = CONTRACT["contractVersion"]
 _SOURCE_SLOT = threading.BoundedSemaphore(1)
+_NUMERIC_VALUE = re.compile(r"^\s*(-?[0-9]+(?:[.,][0-9]+)?)\s*(.*?)\s*$")
 
 
 @dataclass(frozen=True)
@@ -63,6 +66,89 @@ def make_search_plan(payload: dict[str, Any]) -> SearchPlan:
     )
 
 
+def _sort_value(result: dict[str, Any], field: str) -> tuple[str, Decimal] | None:
+    values = [item["value"] for item in result["attributes"] if item["name"] == field]
+    if len(values) != 1:
+        return None
+    match = _NUMERIC_VALUE.fullmatch(values[0])
+    if match is None:
+        return None
+    number, unit = match.groups()
+    if "," in number and "." in number:
+        return None
+    unit = unit.strip()
+    if unit and (unit[0].isdigit() or unit[0] in ".,"):
+        return None
+    try:
+        return unit.casefold(), Decimal(number.replace(",", "."))
+    except InvalidOperation:
+        return None
+
+
+def _order_matches_requested_prefix(
+    results: list[dict[str, Any]], requested_prefix: list[dict[str, str]]
+) -> bool | None:
+    """Return None when the values cannot be compared under one numeric unit."""
+    if not results or not requested_prefix:
+        return None
+    rows: list[list[tuple[str, Decimal]]] = []
+    for result in results:
+        row = [_sort_value(result, key["field"]) for key in requested_prefix]
+        if any(value is None for value in row):
+            return None
+        rows.append([value for value in row if value is not None])
+    for column in range(len(requested_prefix)):
+        units = {row[column][0] for row in rows}
+        if len(units) != 1:
+            return None
+    for left, right in zip(rows, rows[1:]):
+        for index, key in enumerate(requested_prefix):
+            left_value = left[index][1]
+            right_value = right[index][1]
+            if left_value == right_value:
+                continue
+            ordered = left_value < right_value if key["direction"] == "ascending" else left_value > right_value
+            if not ordered:
+                return False
+            break
+    return True
+
+
+def _validate_sort_audit(payload: dict[str, Any], value: dict[str, Any]) -> None:
+    requested = payload["sort"]
+    audit = value["sortAudit"]
+    applied = audit["applied"]
+    if audit["requested"] != requested or applied != requested[: len(applied)]:
+        raise ContractViolation("The sort audit did not preserve the requested ordered fields and directions")
+    status = audit["status"]
+    if status == "not_requested":
+        if requested or applied:
+            raise ContractViolation("The provider reported an unexpected sort audit")
+        return
+    if not requested:
+        raise ContractViolation("The provider reported ordering that the user did not request")
+    if status == "applied":
+        if applied != requested or not audit["basis"].strip():
+            raise ContractViolation("Applied ordering must cover every requested key and declare its basis")
+        order = _order_matches_requested_prefix(value["results"], applied)
+        if order is None:
+            raise ContractViolation("The provider claimed applied ordering without comparable values")
+        if not order:
+            raise ContractViolation("The provider results do not follow the requested ordering and tie-breaks")
+        return
+    if status == "partial":
+        if not 0 < len(applied) < len(requested) or not audit["reason"].strip():
+            raise ContractViolation("Partial ordering must report an applied prefix and the remaining limitation")
+        order = _order_matches_requested_prefix(value["results"], applied)
+        if order is None:
+            raise ContractViolation("The provider claimed a partial ordering without comparable applied values")
+        if not order:
+            raise ContractViolation("The provider results do not follow the applied ordering prefix")
+        return
+    if status == "not_comparable" and (applied or not audit["reason"].strip()):
+        raise ContractViolation("Uncomparable ordering must report no applied keys and explain why")
+
+
 def _timeout_seconds() -> float:
     try:
         value = float(os.environ.get("SOFIEE_AGENT_SOURCE_TIMEOUT_SECONDS", "30"))
@@ -106,17 +192,7 @@ def _validate_provider_result(payload: dict[str, Any], value: Any) -> dict[str, 
         if result["matchStatus"] != expected_match_status:
             raise ContractViolation("Result status does not reflect required filter evidence")
 
-    requested_sort = payload["sort"]
-    sort_audit = value["sortAudit"]
-    if requested_sort:
-        if sort_audit["status"] == "not_requested" or sort_audit["field"] != requested_sort[0]["field"]:
-            raise ContractViolation("The provider did not report the requested ordering field")
-        if sort_audit["status"] == "applied" and not sort_audit["basis"].strip():
-            raise ContractViolation("Applied ordering must identify its comparison basis")
-        if sort_audit["status"] in {"partial", "not_comparable"} and not sort_audit["reason"].strip():
-            raise ContractViolation("Unapplied or partial ordering must explain why")
-    elif sort_audit["status"] != "not_requested":
-        raise ContractViolation("The provider reported ordering that the user did not request")
+    _validate_sort_audit(payload, value)
     return value
 
 
