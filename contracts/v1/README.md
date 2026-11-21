@@ -7,3 +7,5 @@ Filtros obrigatórios são uma interseção. A fixture sintética “camisa bran
 `scripts/validate_contracts.py` confere as fixtures e algumas invariantes de domínio com a biblioteca padrão do Python. Não é validador completo de JSON Schema nem prova a execução de uma busca. O runtime deverá validar o schema com o SDK definido para o agente, consultar fontes e manter evidência atual por resultado. Não há runtime, acesso a fontes, coleta de credenciais ou integração MCP neste incremento.
 
 Execute `C:/SDKs/Python313/python.exe scripts/validate_contracts.py` a partir da raiz do repositório. As referências `fixture://` são dados sintéticos e não descrevem uma oferta real.
+
+O CLI adiciona uma forma de tarefa interna documentada em `docs/INTERNAL_COORDINATION.md`; ela reutiliza a ferramenta contratada, sem alterar os schemas MCP públicos desta versão.

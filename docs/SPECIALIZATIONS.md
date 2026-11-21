@@ -1,5 +1,7 @@
 # Especialidades e competências
 
+As etapas internas de consulta e auditoria são chamadas serialmente dentro do runtime; não criam especialistas isolados nem substituem a validação independente de fontes e fatos. Ver [coordenação interna](INTERNAL_COORDINATION.md).
+
 | Especialidade             | Responsabilidade e limite                              | Entregas verificáveis                                                                                                                                                                                                                                                                                                                              |
 | ------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Interpretação da demanda  | categoria, atributos, negação e critérios obrigatórios | [sofiee-agent-search#10](https://github.com/PHnsilva/sofiee-agent-search/issues/10)                                                                                                                                                                                                                                                                |

@@ -22,3 +22,7 @@
 | N08       | Até cinco sprints de entrega + uma de validação/mudanças, cada uma até uma semana; estimativas PP/P/M/L=1/2/4/8 e meta mínima de 8 unidades/dia por projeto ativo.                                                                                                                                                    | [sofiee-agent-search#1](https://github.com/PHnsilva/sofiee-agent-search/issues/1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 A matriz registra cobertura do planejamento, não sucesso de implementação. Evidência e aceite permanecem nas issues/PRs e na revisão de Pedro.
+
+## Coordenação de tarefas — issue #37
+
+A entrada serial e a etapa `search.audit` conectam os contratos de consulta e limites a N02, N05 e N06. Filtros e ordenação não são reescritos. A falta de fonte real mantém estado bloqueado; a auditoria local não equivale à validação factual independente. Consulte [INTERNAL_COORDINATION.md](INTERNAL_COORDINATION.md) para a limitação de ordenação múltipla do contrato v1 e as evidências desta entrega.
