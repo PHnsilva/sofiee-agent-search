@@ -126,6 +126,7 @@ def execute(
     *,
     provider: SearchProvider | None = None,
     cancel_event: threading.Event | None = None,
+    timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
     try:
         validate_input(tool_name, payload)
@@ -140,7 +141,10 @@ def execute(
             )
         if cancel_event is not None and cancel_event.is_set():
             return error_result("unavailable", "The search request was cancelled before source access.")
-        timeout = _timeout_seconds()
+        configured_timeout = _timeout_seconds()
+        if timeout_seconds is not None and (timeout_seconds <= 0 or timeout_seconds > 120):
+            return error_result("limit_exceeded", "The requested source timeout is outside the permitted range.")
+        timeout = min(configured_timeout, timeout_seconds) if timeout_seconds is not None else configured_timeout
         if not _SOURCE_SLOT.acquire(blocking=False):
             return error_result("limit_exceeded", "The local source concurrency limit was reached.", True)
         try:

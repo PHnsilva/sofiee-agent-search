@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sofiee-agent-search.local/contracts/v1/task.result.schema.json",
+  "title": "Busca — resultado de tarefa interna v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "taskId", "objective", "status", "executed", "stages", "missingDependencies", "missingInputs", "limits", "delegation", "checkpoint"],
+  "properties": {
+    "contractVersion": { "const": "1.0.0" },
+    "taskId": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+    "objective": { "type": "string", "minLength": 5, "maxLength": 2000 },
+    "status": { "enum": ["completed", "blocked", "failed", "partial", "cancelled", "timed_out", "needs_input"] },
+    "executed": { "type": "boolean" },
+    "stages": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "tool", "status", "mode", "attempts"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,39}$" },
+          "tool": { "enum": ["search.query", "search.audit"] },
+          "status": { "enum": ["completed", "partial", "blocked", "failed", "cancelled", "timed_out", "needs_input"] },
+          "mode": { "enum": ["source_provider", "simulated", "deterministic", "unavailable"] },
+          "attempts": { "type": "integer", "minimum": 0, "maximum": 2 },
+          "checkpointRecomputed": { "type": "boolean" },
+          "result": { "type": "object" },
+          "error": { "type": "object" },
+          "blockedBy": { "type": "array", "maxItems": 7, "items": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,39}$" } }
+        }
+      }
+    },
+    "missingDependencies": { "type": "array", "maxItems": 8, "items": { "type": "string", "minLength": 1, "maxLength": 300 } },
+    "missingInputs": { "type": "array", "maxItems": 40, "items": { "type": "string", "minLength": 1, "maxLength": 500 } },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxSteps", "timeoutMs", "maxAttempts", "maxConcurrency", "maxDelegationDepth", "maxOutputBytes"],
+      "properties": {
+        "maxSteps": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "timeoutMs": { "type": "integer", "minimum": 1, "maximum": 60000 },
+        "maxAttempts": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "maxConcurrency": { "const": 1 },
+        "maxDelegationDepth": { "const": 0 },
+        "maxOutputBytes": { "type": "integer", "minimum": 1024, "maximum": 256000 }
+      }
+    },
+    "delegation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["depthUsed", "subagents", "reason"],
+      "properties": {
+        "depthUsed": { "const": 0 },
+        "subagents": { "const": 0 },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 200 }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "taskId", "objectiveDigest", "completedStages"],
+      "properties": {
+        "contractVersion": { "const": "1.0.0" },
+        "taskId": { "type": "string", "pattern": "^[0-9a-fA-F-]{36}$" },
+        "objectiveDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "completedStages": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "tool", "stageDigest", "resultDigest"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,39}$" },
+              "tool": { "enum": ["search.query", "search.audit"] },
+              "stageDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "resultDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": {
+    "validResult": {
+      "contractVersion": "1.0.0",
+      "taskId": "10000000-0000-4000-8000-000000000001",
+      "objective": "Executar busca com auditoria",
+      "status": "completed",
+      "executed": true,
+      "stages": [
+        { "id": "query", "tool": "search.query", "status": "completed", "mode": "source_provider", "attempts": 1, "result": { "contractVersion": "1.0.0", "status": "no_results", "results": [], "filterAudit": [], "sortAudit": { "status": "not_requested", "field": "", "basis": "", "reason": "" }, "pagination": { "hasMore": false, "nextCursor": "", "coverage": "complete" } } },
+        { "id": "audit", "tool": "search.audit", "status": "completed", "mode": "deterministic", "attempts": 1, "result": { "status": "audited", "candidateCount": 0, "factsVerified": false } }
+      ],
+      "missingDependencies": [],
+      "missingInputs": [],
+      "limits": { "maxSteps": 8, "timeoutMs": 60000, "maxAttempts": 1, "maxConcurrency": 1, "maxDelegationDepth": 0, "maxOutputBytes": 256000 },
+      "delegation": { "depthUsed": 0, "subagents": 0, "reason": "Etapas seriais." },
+      "checkpoint": {
+        "contractVersion": "1.0.0",
+        "taskId": "10000000-0000-4000-8000-000000000001",
+        "objectiveDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "completedStages": [
+          { "id": "query", "tool": "search.query", "stageDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "resultDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" },
+          { "id": "audit", "tool": "search.audit", "stageDigest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "resultDigest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" }
+        ]
+      }
+    },
+    "invalidResult": {
+      "contractVersion": "1.0.0",
+      "taskId": "bad-id",
+      "objective": "Invalid task result",
+      "status": "completed",
+      "executed": false,
+      "stages": [],
+      "missingDependencies": [],
+      "missingInputs": [],
+      "limits": { "maxSteps": 8, "timeoutMs": 60000, "maxAttempts": 1, "maxConcurrency": 1, "maxDelegationDepth": 0, "maxOutputBytes": 256000 },
+      "delegation": { "depthUsed": 0, "subagents": 0, "reason": "Etapas seriais." },
+      "checkpoint": { "contractVersion": "1.0.0", "taskId": "bad-id", "objectiveDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "completedStages": [] }
+    }
+  }
+}
